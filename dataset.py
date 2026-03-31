@@ -89,7 +89,7 @@ class EndoscapesCVSDataset(Dataset):
       - ColorJitter to handle lighting variation in OR environments
       - Random rotation ±10° for camera angle variation
       - RandomAutocontrast to simulate specular highlight variation
-      - ImageNet normalization (standard for pretrained EfficientNet)
+      - ImageNet normalization (standard for pretrained ResNet)
 
     Validation/test frames are only resized to 300x300 — no augmentation.
     """

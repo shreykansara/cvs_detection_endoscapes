@@ -1,7 +1,7 @@
 """
-CVS Classifier — EfficientNet-B3 backbone
+CVS Classifier — ResNet-50 backbone
 -------------------------------------------
-Architecture: torchvision EfficientNet-B3 pretrained on ImageNet,
+Architecture: torchvision ResNet-50 pretrained on ImageNet,
 with the default classifier replaced by a single binary output head.
 
 The two-phase training design (freeze backbone → unfreeze) is specific
@@ -9,12 +9,12 @@ to this implementation and is not derived from any existing CVS codebase.
 """
 
 import torch.nn as nn
-from torchvision.models import efficientnet_b3, EfficientNet_B3_Weights
+from torchvision.models import resnet50, ResNet50_Weights
 
 
 class CVSClassifier(nn.Module):
     """
-    Binary CVS classifier built on EfficientNet-B3.
+    Binary CVS classifier built on ResNet-50.
 
     Phase 1 (freeze_backbone=True): only the new head trains.
               Allows the head to learn meaningful features before
@@ -31,16 +31,16 @@ class CVSClassifier(nn.Module):
                  num_outputs: int = 1):
         super().__init__()
 
-        self.backbone = efficientnet_b3(
-            weights=EfficientNet_B3_Weights.IMAGENET1K_V1)
+        self.backbone = resnet50(
+            weights=ResNet50_Weights.IMAGENET1K_V1)
 
         if freeze_backbone:
             for param in self.backbone.parameters():
                 param.requires_grad = False
 
         # Replace the default classifier with a task-specific head
-        in_features = self.backbone.classifier[1].in_features
-        self.backbone.classifier = nn.Sequential(
+        in_features = self.backbone.fc.in_features
+        self.backbone.fc = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(in_features, num_outputs)
         )

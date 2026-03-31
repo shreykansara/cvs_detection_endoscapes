@@ -172,7 +172,7 @@ def run_training():
     # ── Final evaluation on test set ───────────────────────────────
     print("\n=== Test set evaluation ===")
     model.load_state_dict(best_state)
-    torch.save(best_state, "cvs_endoscapes_best.pth")
+    torch.save(best_state, "cvs_endoscapes_resnet50_best.pth")
 
     ts_loss, ts_auc, ts_f1 = evaluate_split(
         model, test_loader, criterion, DEVICE)
