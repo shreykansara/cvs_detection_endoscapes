@@ -28,7 +28,7 @@ from model import CVSClassifier
 
 
 DEVICE      = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CHECKPOINT  = "cvs_endoscapes_resnet50_best.pth"
+CHECKPOINT  = "cvs_endoscapes_convnext_best.pth"
 LABEL_MODE  = "binary"
 BATCH_SIZE  = 32
 NUM_WORKERS = 4
@@ -158,13 +158,13 @@ def plot_roc_and_pr(labels, probs, threshold):
 def compute_gradcam(model, img_tensor):
     """
     Generates a Grad-CAM heatmap for a single image tensor.
-    Hooks onto the last convolutional block of ResNet-50.
+    Hooks onto the last convolutional block of ConvNeXt-Tiny.
     Returns a heatmap array normalised to [0, 1].
     """
     model.eval()
     activations, gradients = [], []
 
-    target_layer = model.backbone.layer4[-1]
+    target_layer = model.backbone.features[-1]
     fwd_hook = target_layer.register_forward_hook(
         lambda m, i, o: activations.append(o.detach()))
     bwd_hook = target_layer.register_full_backward_hook(

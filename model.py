@@ -1,7 +1,7 @@
 """
-CVS Classifier — ResNet-50 backbone
+CVS Classifier — ConvNeXt-Tiny backbone
 -------------------------------------------
-Architecture: torchvision ResNet-50 pretrained on ImageNet,
+Architecture: torchvision ConvNeXt-Tiny pretrained on ImageNet,
 with the default classifier replaced by a single binary output head.
 
 The two-phase training design (freeze backbone → unfreeze) is specific
@@ -9,12 +9,12 @@ to this implementation and is not derived from any existing CVS codebase.
 """
 
 import torch.nn as nn
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import convnext_tiny, ConvNeXt_Tiny_Weights
 
 
 class CVSClassifier(nn.Module):
     """
-    Binary CVS classifier built on ResNet-50.
+    Binary CVS classifier built on ConvNeXt-Tiny.
 
     Phase 1 (freeze_backbone=True): only the new head trains.
               Allows the head to learn meaningful features before
@@ -31,16 +31,16 @@ class CVSClassifier(nn.Module):
                  num_outputs: int = 1):
         super().__init__()
 
-        self.backbone = resnet50(
-            weights=ResNet50_Weights.IMAGENET1K_V1)
+        self.backbone = convnext_tiny(
+            weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
 
         if freeze_backbone:
             for param in self.backbone.parameters():
                 param.requires_grad = False
 
         # Replace the default classifier with a task-specific head
-        in_features = self.backbone.fc.in_features
-        self.backbone.fc = nn.Sequential(
+        in_features = self.backbone.classifier[2].in_features
+        self.backbone.classifier[2] = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(in_features, num_outputs)
         )

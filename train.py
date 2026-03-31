@@ -143,7 +143,7 @@ def run_training():
 
     best_val_auc    = 0.0
     best_state      = None
-    patience        = 5     # stop if no improvement for 5 consecutive epochs
+    patience        = 5    # stop if no improvement for 5 consecutive epochs
     epochs_no_improve = 0
 
     for epoch in range(1, EPOCHS_P2 + 1):
@@ -172,7 +172,7 @@ def run_training():
     # ── Final evaluation on test set ───────────────────────────────
     print("\n=== Test set evaluation ===")
     model.load_state_dict(best_state)
-    torch.save(best_state, "cvs_endoscapes_resnet50_best.pth")
+    torch.save(best_state, "cvs_endoscapes_convnext_best.pth")
 
     ts_loss, ts_auc, ts_f1 = evaluate_split(
         model, test_loader, criterion, DEVICE)
