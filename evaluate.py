@@ -19,7 +19,8 @@ from PIL import Image
 from torchvision import transforms
 from sklearn.metrics import (
     roc_auc_score, f1_score, classification_report,
-    confusion_matrix, roc_curve, precision_recall_curve
+    confusion_matrix, roc_curve, precision_recall_curve,
+    ConfusionMatrixDisplay
 )
 
 from dataset import make_loaders, EndoscapesCVSDataset, ROOT
@@ -105,6 +106,14 @@ def evaluate(model, test_loader, val_loader):
     print(f"Sensitivity (recall for CVS=1) : {sensitivity:.4f}")
     print(f"Specificity (recall for CVS=0) : {specificity:.4f}")
     print(f"\nConfusion matrix:\n{cm}")
+
+    # Plot and save confusion matrix heatmap
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["No CVS", "CVS achieved"])
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix Heatmap")
+    plt.savefig("cvs_confusion_matrix.png", dpi=150, bbox_inches="tight")
+    plt.show()
+    print("Saved: cvs_confusion_matrix.png")
 
     plot_roc_and_pr(test_labels, test_probs, best_thresh)
     return best_thresh
