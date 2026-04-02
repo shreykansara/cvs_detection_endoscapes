@@ -106,6 +106,7 @@ h1 {
   margin-bottom: 0.5rem;
   background: linear-gradient(to right, #fff, #a5b4fc);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -113,6 +114,49 @@ p {
   color: var(--text-secondary);
   font-weight: 300;
   line-height: 1.5;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--panel-border);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 /* Upload Section */
@@ -168,8 +212,8 @@ p {
   color: var(--text-secondary);
 }
 
-/* Results Section */
-.result-section {
+/* Results Section & Live Camera Section */
+.result-section, .live-section {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -198,11 +242,18 @@ p {
   background: #000;
 }
 
-#image-preview {
+#image-preview, #webcam-video {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 12px;
+}
+
+/* Avoid mirror effect on camera (laparoscopic views aren't mirrored) */
+#webcam-video {
+  transform: scaleX(1); 
 }
 
 .loading-overlay {
@@ -255,9 +306,10 @@ p {
   border-radius: 50%;
   background: var(--text-secondary);
   box-shadow: 0 0 10px rgba(139, 148, 158, 0.5);
+  transition: all 0.3s ease;
 }
 
-#result-title {
+#result-title, #live-result-title {
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -292,7 +344,7 @@ p {
   width: 0%;
   background: var(--accent-blob-1);
   border-radius: 4px;
-  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.5s ease;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.5s ease;
 }
 
 .metric-value {
@@ -300,6 +352,7 @@ p {
   font-weight: 500;
   display: block;
   text-align: right;
+  transition: color 0.3s ease;
 }
 
 .secondary-btn {

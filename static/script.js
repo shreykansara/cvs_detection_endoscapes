@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Tab Elements
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Static Tab Elements
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const resultSection = document.getElementById('result-section');
@@ -13,7 +18,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const confidenceBar = document.getElementById('confidence-bar');
     const confidenceValue = document.getElementById('confidence-value');
 
-    // Drag and Drop Events
+    // Live Tab Elements
+    const videoElem = document.getElementById('webcam-video');
+    const canvasElem = document.getElementById('webcam-canvas');
+    const liveOverlay = document.getElementById('live-overlay');
+    const liveOverlayText = document.getElementById('live-overlay-text');
+    const cameraStopBtn = document.getElementById('camera-stop-btn');
+    
+    const liveStatusCard = document.getElementById('live-status-card');
+    const liveStatusIndicator = document.getElementById('live-status-indicator');
+    const liveResultTitle = document.getElementById('live-result-title');
+    const liveConfidenceBar = document.getElementById('live-confidence-bar');
+    const liveConfidenceValue = document.getElementById('live-confidence-value');
+
+    let videoStream = null;
+    let analysisInterval = null;
+    let isAnalyzingLive = false;
+
+    // --- Tab Switching Logic ---
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active classes
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked
+            btn.classList.add('active');
+            const targetId = btn.getAttribute('data-target');
+            document.getElementById(targetId).classList.add('active');
+
+            // Handle Camera Lifecycle
+            if (targetId === 'tab-live') {
+                startCamera();
+            } else {
+                stopCamera();
+            }
+        });
+    });
+
+    // --- Static Upload Logic ---
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
     });
@@ -33,8 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dropZone.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFiles(files);
+        handleFiles(dt.files);
     });
 
     dropZone.addEventListener('click', () => {
@@ -46,35 +88,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetBtn.addEventListener('click', () => {
-        resetUI();
+        resetStaticUI();
     });
 
     function handleFiles(files) {
         if (files.length === 0) return;
         const file = files[0];
         
-        // Basic image validation
         if (!file.type.match('image.*')) {
             alert('Please select an image file (.jpg, .jpeg, .png).');
             return;
         }
 
-        // Show preview and loading state immediately
         const reader = new FileReader();
         reader.onload = (e) => {
             imagePreview.src = e.target.result;
-            showAnalyzing();
-            uploadImage(file);
+            showAnalyzingStatic();
+            uploadImage(file, false);
         };
         reader.readAsDataURL(file);
     }
 
-    function showAnalyzing() {
+    function showAnalyzingStatic() {
         uploadSection.classList.add('hidden');
         resultSection.classList.remove('hidden');
         loadingOverlay.classList.remove('hidden');
         
-        // Reset old results
         resultTitle.textContent = "Analyzing Frame...";
         statusCard.className = 'status-card';
         statusIndicator.style.background = 'var(--text-secondary)';
@@ -83,7 +122,100 @@ document.addEventListener('DOMContentLoaded', () => {
         confidenceValue.textContent = '0%';
     }
 
-    async function uploadImage(file) {
+    function resetStaticUI() {
+        uploadSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        fileInput.value = ''; 
+        imagePreview.src = '';
+    }
+
+    // --- Live Camera Logic ---
+
+    cameraStopBtn.addEventListener('click', stopCamera);
+
+    async function startCamera() {
+        if (videoStream) return; // Already running
+        
+        liveOverlay.classList.remove('hidden');
+        liveOverlayText.textContent = "Requesting Camera Access...";
+        cameraStopBtn.classList.remove('hidden');
+
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" } // Prefer back camera
+            });
+            videoElem.srcObject = videoStream;
+            
+            videoElem.onloadedmetadata = () => {
+                videoElem.play();
+                liveOverlay.classList.add('hidden');
+                
+                // Set canvas size to match video internally
+                canvasElem.width = videoElem.videoWidth;
+                canvasElem.height = videoElem.videoHeight;
+                
+                // Start the 1-second analysis loop
+                liveResultTitle.textContent = "Analyzing Stream...";
+                analysisInterval = setInterval(captureAndAnalyzeWebcam, 1000);
+            };
+        } catch (err) {
+            console.error("Error accessing webcam: ", err);
+            liveOverlayText.textContent = "Camera Error: " + err.message;
+            liveResultTitle.textContent = "Camera Offline";
+            cameraStopBtn.classList.add('hidden');
+        }
+    }
+
+    function stopCamera() {
+        if (analysisInterval) {
+            clearInterval(analysisInterval);
+            analysisInterval = null;
+        }
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+            videoElem.srcObject = null;
+        }
+        
+        liveOverlay.classList.remove('hidden');
+        liveOverlayText.textContent = "Camera Stopped";
+        liveResultTitle.textContent = "Camera Offline";
+        cameraStopBtn.classList.add('hidden');
+        
+        // Reset live UI cards
+        liveStatusCard.className = 'status-card';
+        liveConfidenceBar.style.width = '0%';
+        liveConfidenceValue.textContent = '0%';
+        liveConfidenceBar.style.backgroundColor = 'var(--accent-blob-1)';
+    }
+
+    async function captureAndAnalyzeWebcam() {
+        // Prevent stacking requests if the network is extremely slow (>1s latency)
+        if (isAnalyzingLive || !videoStream) return;
+        
+        const context = canvasElem.getContext('2d');
+        // Redraw check to prevent black frames if metadata updated
+        if(canvasElem.width !== videoElem.videoWidth) {
+           canvasElem.width = videoElem.videoWidth;
+           canvasElem.height = videoElem.videoHeight;
+        }
+        context.drawImage(videoElem, 0, 0, canvasElem.width, canvasElem.height);
+
+        isAnalyzingLive = true;
+
+        canvasElem.toBlob((blob) => {
+            if(!blob) {
+                isAnalyzingLive = false;
+                return;
+            }
+            // Model expects a file object
+            const file = new File([blob], "live_frame.jpg", { type: "image/jpeg" });
+            uploadImage(file, true);
+        }, 'image/jpeg', 0.85); // 85% quality JPEG for speed over network
+    }
+
+    // --- Shared Core API Logic ---
+    async function uploadImage(file, isLive = false) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -94,23 +226,35 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Network error occurred');
+                throw new Error('Network error');
             }
 
             const data = await response.json();
-            displayResults(data);
-
+            
+            if(isLive) {
+                displayLiveResults(data);
+            } else {
+                displayStaticResults(data);
+            }
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error analyzing image: ' + error.message);
-            resetUI();
+            console.error('Error Details:', error);
+            if (!isLive) {
+                alert('Error analyzing image. Ensure backend is running.');
+                resetStaticUI();
+            } else {
+                // For live, fail silently to not interrupt the stream, just drop UI connection
+                liveResultTitle.textContent = "Connection lost/retrying...";
+            }
         } finally {
-            loadingOverlay.classList.add('hidden');
+            if (!isLive) {
+                loadingOverlay.classList.add('hidden');
+            } else {
+                isAnalyzingLive = false;
+            }
         }
     }
 
-    function displayResults(data) {
+    function displayStaticResults(data) {
         const { achieved, probability } = data;
         const probPct = (probability * 100).toFixed(1);
 
@@ -130,10 +274,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function resetUI() {
-        uploadSection.classList.remove('hidden');
-        resultSection.classList.add('hidden');
-        fileInput.value = ''; // Clear input
-        imagePreview.src = '';
+    function displayLiveResults(data) {
+        const { achieved, probability } = data;
+        const probPct = (probability * 100).toFixed(1);
+
+        liveConfidenceBar.style.width = `${probPct}%`;
+        liveConfidenceValue.textContent = `${probPct}%`;
+        
+        if (achieved) {
+            liveResultTitle.textContent = "CVS Achieved";
+            liveStatusCard.classList.add('status-achieved');
+            liveStatusCard.classList.remove('status-not-achieved');
+            liveConfidenceBar.style.backgroundColor = 'var(--success-color)';
+        } else {
+            liveResultTitle.textContent = "CVS Not Achieved";
+            liveStatusCard.classList.add('status-not-achieved');
+            liveStatusCard.classList.remove('status-achieved');
+            liveConfidenceBar.style.backgroundColor = 'var(--danger-color)';
+        }
     }
 });

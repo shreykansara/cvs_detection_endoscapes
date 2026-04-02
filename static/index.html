@@ -19,39 +19,45 @@
         
         <main class="glass-panel">
             <header>
-                <h1>Critical View of Safety Analysis</h1>
-                <p>Upload a laparoscopic cholecystectomy frame to assess CVS achievement.</p>
+                <h1>Critical View of Safety</h1>
+                <p>Upload a frame or use the live camera to assess CVS achievement.</p>
             </header>
 
-            <section class="upload-section">
-                <div class="drop-zone" id="drop-zone">
-                    <div class="drop-zone-content">
-                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 4L12 16M12 4L8 8M12 4L16 8M4 17L4 19C4 20.1046 4.89543 21 6 21L18 21C19.1046 21 20 20.1046 20 19L20 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span class="drop-text">Drag and drop your image here</span>
-                        <span class="drop-subtext">or click to browse (.jpg, .png)</span>
-                    </div>
-                </div>
-                <input type="file" id="file-input" accept="image/jpeg, image/png, image/jpg" hidden>
-            </section>
+            <div class="tabs">
+                <button class="tab-btn active" data-target="tab-static">Static Frame</button>
+                <button class="tab-btn" data-target="tab-live">Live Camera</button>
+            </div>
 
-            <section id="result-section" class="result-section hidden">
-                <div class="image-preview-container">
-                    <img id="image-preview" src="" alt="Uploaded frame preview">
-                    <div id="loading-overlay" class="loading-overlay hidden">
-                        <div class="spinner"></div>
-                        <span>Analyzing Frame...</span>
+            <!-- Static Tab Content -->
+            <div id="tab-static" class="tab-content active">
+                <section class="upload-section">
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="drop-zone-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4L12 16M12 4L8 8M12 4L16 8M4 17L4 19C4 20.1046 4.89543 21 6 21L18 21C19.1046 21 20 20.1046 20 19L20 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="drop-text">Drag and drop your frame here</span>
+                            <span class="drop-subtext">or click to browse (.jpg, .png)</span>
+                        </div>
                     </div>
-                </div>
+                    <input type="file" id="file-input" accept="image/jpeg, image/png, image/jpg" hidden>
+                </section>
 
-                <div class="analysis-results">
-                    <div class="status-card" id="status-card">
-                        <div class="status-indicator" id="status-indicator"></div>
-                        <h2 id="result-title">Awaiting Image</h2>
+                <section id="result-section" class="result-section hidden">
+                    <div class="image-preview-container">
+                        <img id="image-preview" src="" alt="Uploaded frame preview">
+                        <div id="loading-overlay" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <span>Analyzing Frame...</span>
+                        </div>
                     </div>
-                    
-                    <div class="metrics-card">
+
+                    <div class="analysis-results">
+                        <div class="status-card" id="status-card">
+                            <div class="status-indicator" id="status-indicator"></div>
+                            <h2 id="result-title">Awaiting Image</h2>
+                        </div>
+                        
                         <div class="metric">
                             <span class="metric-label">Model Confidence</span>
                             <div class="progress-bar-container">
@@ -59,11 +65,43 @@
                             </div>
                             <span class="metric-value" id="confidence-value">0%</span>
                         </div>
+                        
+                        <button id="reset-btn" class="secondary-btn">Analyze Another Frame</button>
                     </div>
-                    
-                    <button id="reset-btn" class="secondary-btn">Analyze Another Frame</button>
-                </div>
-            </section>
+                </section>
+            </div>
+
+            <!-- Live Camera Tab Content -->
+            <div id="tab-live" class="tab-content">
+                <section class="live-section">
+                    <div class="image-preview-container">
+                        <video id="webcam-video" autoplay playsinline muted></video>
+                        <canvas id="webcam-canvas" class="hidden"></canvas>
+                        
+                        <div id="live-overlay" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <span id="live-overlay-text">Connecting to Camera...</span>
+                        </div>
+                    </div>
+
+                    <div class="analysis-results">
+                        <div class="status-card" id="live-status-card">
+                            <div class="status-indicator" id="live-status-indicator"></div>
+                            <h2 id="live-result-title">Camera Offline</h2>
+                        </div>
+                        
+                        <div class="metric">
+                            <span class="metric-label">Live Confidence (Updated every 1s)</span>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="live-confidence-bar"></div>
+                            </div>
+                            <span class="metric-value" id="live-confidence-value">0%</span>
+                        </div>
+
+                        <button id="camera-stop-btn" class="secondary-btn hidden">Stop Camera</button>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
