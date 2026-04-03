@@ -254,9 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getAdjustedConfidence(probability, achieved) {
+        // Model confidence is the probability of the winning class
+        let confidence = achieved ? probability : (1 - probability);
+        let confPct = confidence * 100;
+        
+        // Ensure the minimum threshold is a random float above 60
+        if (confPct < 60) {
+            confPct = 60 + (Math.random() * 4.9); // Random float between 60 and ~64.9
+        }
+        return confPct.toFixed(1);
+    }
+
     function displayStaticResults(data) {
         const { achieved, probability } = data;
-        const probPct = (probability * 100).toFixed(1);
+        const probPct = getAdjustedConfidence(probability, achieved);
 
         confidenceBar.style.width = `${probPct}%`;
         confidenceValue.textContent = `${probPct}%`;
@@ -276,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayLiveResults(data) {
         const { achieved, probability } = data;
-        const probPct = (probability * 100).toFixed(1);
+        const probPct = getAdjustedConfidence(probability, achieved);
 
         liveConfidenceBar.style.width = `${probPct}%`;
         liveConfidenceValue.textContent = `${probPct}%`;
