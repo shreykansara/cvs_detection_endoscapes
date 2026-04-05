@@ -1,3 +1,5 @@
+const API_BASE_URL = 'https://cvs-detection-backend.onrender.com'; // CHANGE THIS TO YOUR RENDER URL
+
 document.addEventListener('DOMContentLoaded', () => {
     // Tab Elements
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -220,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', file);
 
         try {
-            const response = await fetch('/predict', {
+            const response = await fetch(`${API_BASE_URL}/predict`, {
                 method: 'POST',
                 body: formData
             });
