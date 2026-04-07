@@ -81,11 +81,11 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# Mount frontend static directory (HTML, CSS, JS)
+# Mount frontend docs directory (HTML, CSS, JS)
 try:
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    app.mount("/", StaticFiles(directory="docs", html=True), name="docs")
 except Exception as e:
-    print("Warning: static directory not found, skipping frontend mount.")
+    print("Warning: docs directory not found, skipping frontend mount.")
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
