@@ -2,7 +2,6 @@ import io
 import torch
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from torchvision import transforms
@@ -12,6 +11,7 @@ from contextlib import asynccontextmanager
 from model import CVSClassifier
 
 # Configuration
+torch.set_num_threads(1)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 CHECKPOINT_PATH = "convenext_tiny/cvs_endoscapes_convnext_best.pth"
 THRESHOLD = 0.5
@@ -81,11 +81,9 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# Mount frontend docs directory (HTML, CSS, JS)
-try:
-    app.mount("/", StaticFiles(directory="docs", html=True), name="docs")
-except Exception as e:
-    print("Warning: docs directory not found, skipping frontend mount.")
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "CVS Detection Backend is running"}
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

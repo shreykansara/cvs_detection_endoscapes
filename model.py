@@ -9,7 +9,7 @@ to this implementation and is not derived from any existing CVS codebase.
 """
 
 import torch.nn as nn
-from torchvision.models import convnext_tiny, ConvNeXt_Tiny_Weights
+from torchvision.models import convnext_tiny
 
 
 class CVSClassifier(nn.Module):
@@ -32,7 +32,7 @@ class CVSClassifier(nn.Module):
         super().__init__()
 
         self.backbone = convnext_tiny(
-            weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
+            weights=None)
 
         if freeze_backbone:
             for param in self.backbone.parameters():
