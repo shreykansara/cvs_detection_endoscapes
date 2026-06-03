@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://cvs-detection-backend.onrender.com'; // CHANGE THIS TO YOUR RENDER URL
+const API_BASE_URL = 'https://cvs-detection-endoscapes.onrender.com'; // CHANGE THIS TO YOUR RENDER URL
 
 document.addEventListener('DOMContentLoaded', () => {
     // Tab Elements
