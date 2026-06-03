@@ -1,5 +1,6 @@
 import io
 import torch
+import gc
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,10 +26,12 @@ async def lifespan(app: FastAPI):
     global model
     try:
         model = CVSClassifier(dropout=0.0, freeze_backbone=False, num_outputs=1)
-        state = torch.load(CHECKPOINT_PATH, map_location=DEVICE)
+        state = torch.load(CHECKPOINT_PATH, map_location=DEVICE, weights_only=True, mmap=True)
         model.load_state_dict(state)
         model.to(DEVICE)
         model.eval()
+        del state
+        gc.collect()
         print(f"Loaded model successfully to {DEVICE} from {CHECKPOINT_PATH}")
     except Exception as e:
         print(f"Failed to load model: {e}")
